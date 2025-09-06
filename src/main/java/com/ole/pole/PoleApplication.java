@@ -1,4 +1,4 @@
-package com.ole.pole.pole;
+package com.ole.pole;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,6 +12,7 @@ public class PoleApplication {
     public static void main(String[] args) {
         SpringApplication.run(PoleApplication.class, args);
     }
+
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
         return String.format("Hello %s!", name);
