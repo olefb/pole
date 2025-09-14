@@ -1,6 +1,3 @@
-frontend/.env
-frontend/.env.development
-frontend/.env.production
 HELP.md
 .gradle
 build/
@@ -38,4 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
