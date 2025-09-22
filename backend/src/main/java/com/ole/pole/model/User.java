@@ -23,8 +23,38 @@ public class User {
     @OneToMany(mappedBy = "voter", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Vote> votes = new ArrayList<>();
-
     public User() {
+    }
+
+    /**
+     * Creates a new User object with given username and email.
+     * The id of a new user object gets determined by the database.
+     */
+    public User(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
+
+    /**
+     * Creates a new Poll object for this user
+     * with the given poll question
+     * and returns it.
+     */
+    public Poll createPoll(String question) {
+        Poll poll = new Poll(question, this);
+        polls.add(poll);
+        return poll;
+    }
+
+    /**
+     * Creates a new Vote for a given VoteOption in a Poll
+     * and returns the Vote as an object.
+     */
+    public Vote voteFor(VoteOption option) {
+        Vote vote = new Vote(this, option);
+        votes.add(vote);
+        option.getVotes().add(vote);
+        return vote;
     }
 
     public Long getId() {

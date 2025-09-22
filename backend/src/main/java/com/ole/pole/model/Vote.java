@@ -31,6 +31,13 @@ public class Vote {
     public Vote() {
     }
 
+    public Vote(User user, VoteOption option2) {
+        this.voter = user;
+        this.option = option2;
+        this.poll = option2.getPoll();
+        this.votedAt = LocalDateTime.now();
+    }
+
     public Long getId() {
         return id;
     }

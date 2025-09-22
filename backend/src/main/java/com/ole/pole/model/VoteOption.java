@@ -27,6 +27,12 @@ public class VoteOption {
     public VoteOption() {
     }
 
+    public VoteOption(String caption2, Poll poll2, int size) {
+        this.caption = caption2;
+        this.poll = poll2;
+        this.presentationOrder = size;
+    }
+
     public Long getId() {
         return id;
     }

@@ -32,6 +32,27 @@ public class Poll {
     public Poll() {
     }
 
+    public Poll(String question2, User user) {
+        this.question = question2;
+        this.creator = user;
+        this.publishedAt = LocalDateTime.now();
+    }
+
+    /**
+     *
+     * Adds a new option to this Poll and returns the respective
+     * VoteOption object with the given caption.
+     * The value of the presentationOrder field gets determined
+     * by the size of the currently existing VoteOptions for this Poll.
+     * I.e. the first added VoteOption has presentationOrder=0, the secondly
+     * registered VoteOption has presentationOrder=1 ans so on.
+     */
+    public VoteOption addVoteOption(String caption) {
+        VoteOption option = new VoteOption(caption, this, options.size());
+        options.add(option);
+        return option;
+    }
+
     public Long getId() {
         return id;
     }
