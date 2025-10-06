@@ -6,7 +6,7 @@ https://github.com/olefb/pole
 
 `PollsTest` succeeds and showcases how the Jakarta Persistence API (implemented in Hibernate) can be used to work with model objects. After getting the tests to pass by adding lacking methods, I adapted the test methods to run on the main application class. I set up access to the in-browser H2 console, in which I could handle the database and verify that objects had been created in the in-memory database. Here's a screenshot of it in use:
 
-![](h2-jpa.png)
+![](docs/h2-jpa.png)
 
 ## Technical issues encountered
 

@@ -33,6 +33,12 @@ dependencies {
     implementation("org.springframework:spring-tx:6.2.11")
     implementation("org.springframework:spring-orm:6.2.10")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
+
+    // https://mvnrepository.com/artifact/io.valkey/valkey-java
+    implementation("io.valkey:valkey-java:5.4.0")
+
+    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 }
 
 tasks.withType<Test> {

@@ -1,5 +1,6 @@
 package com.ole.pole.controller;
 
+import com.ole.pole.dto.PollResultOptionDTO;
 import com.ole.pole.service.PollManager;
 import com.ole.pole.model.Poll;
 import com.ole.pole.model.User;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/polls")
@@ -58,6 +61,30 @@ public class PollController {
         poll.setOptions(voteOptions);
 
         return poll;
+    }
+
+    @GetMapping("/{id}/results")
+    public List<PollResultOptionDTO> getResults(@PathVariable Long id) {
+
+        // Get the raw poll object to fetch option captions
+        Poll poll = pollManager.getPoll(id);
+        if (poll == null) {
+            return List.of();
+        }
+
+        // Get the aggregated counts from the service
+        Map<Long, Long> voteCounts = pollManager.getPollResults(id);
+
+        // Combine counts with option details (caption, etc.) and return DTO
+        return poll.getOptions().stream()
+                .map(option -> {
+                    PollResultOptionDTO dto = new PollResultOptionDTO();
+                    dto.setOptionId(option.getId());
+                    dto.setCaption(option.getCaption());
+                    dto.setVoteCount(voteCounts.getOrDefault(option.getId(), 0L));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
