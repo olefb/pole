@@ -1,5 +1,6 @@
 package com.ole.pole.service;
 
+import com.ole.pole.dto.VoteEvent;
 import com.ole.pole.model.User;
 import com.ole.pole.model.Poll;
 import com.ole.pole.model.VoteOption;
@@ -28,13 +29,16 @@ public class PollManager {
 
     private final ValkeyVoteService valkeyVoteService;
 
+    private final PollEventPublisher pollEventPublisher;
+
     @Autowired
-    public PollManager(ValkeyVoteService valkeyVoteService) {
+    public PollManager(ValkeyVoteService valkeyVoteService, PollEventPublisher pollEventPublisher) {
         this.users = new HashMap<>();
         this.polls = new HashMap<>();
         this.voteOptions = new HashMap<>();
         this.votes = new HashMap<>();
         this.valkeyVoteService = valkeyVoteService;
+        this.pollEventPublisher = pollEventPublisher;
     }
 
     // Users
@@ -72,6 +76,11 @@ public class PollManager {
         Long id = pollId.getAndIncrement();
         poll.setId(id);
         polls.put(id, poll);
+        pollEventPublisher.registerPollTopic(id);
+
+        if (poll.getCreator() != null) {
+            poll.getCreator().getPolls().add(poll);
+        }
         return id;
     }
 
@@ -98,6 +107,10 @@ public class PollManager {
         Long id = optionId.getAndIncrement();
         voteOption.setId(id);
         voteOptions.put(id, voteOption);
+
+        if (voteOption.getPoll() != null) {
+            voteOption.getPoll().getOptions().add(voteOption);
+        }
         return id;
     }
 
@@ -117,10 +130,51 @@ public class PollManager {
     }
 
     public Long createVote(Vote vote) {
+        // Build the event from the Vote object (which was constructed in the controller)
+        VoteEvent event = new VoteEvent(
+                vote.getPoll().getId(),
+                vote.getOption().getId(),
+                vote.getVoter().getId(),
+                vote.getVotedAt()
+        );
+
+        // Publish the event to RabbitMQ
+        pollEventPublisher.publishVoteEvent(event);
+
+        // placeholder return value; the actual persistence happens asynchronously in recordVoteFromEvent()
+        return -1L;
+    }
+
+    public Long recordVoteFromEvent(VoteEvent event) {
+
+        User voter = getUser(event.voterId());
+        Poll poll = getPoll(event.pollId());
+        VoteOption option = getVoteOption(event.optionId());
+
+        if (voter == null || poll == null || option == null) {
+            System.err.println("Event data invalid: User, Poll, or Option not found.");
+            return -1L;
+        }
+
+        // create the Vote entity
+        Vote vote = new Vote();
+        vote.setVotedAt(event.votedAt());
+        vote.setVoter(voter);
+        vote.setOption(option);
+        vote.setPoll(poll);
+
+        // persist the Vote and update the cache
         Long id = voteId.getAndIncrement();
         vote.setId(id);
         votes.put(id, vote);
+
+        voter.getVotes().add(vote);
+        option.getVotes().add(vote);
+        poll.getVotes().add(vote);
+
         valkeyVoteService.incrementVote(vote.getPoll().getId(), vote.getOption().getId());
+
+        System.out.println("Vote recorded from event: " + id);
         return id;
     }
 
@@ -129,11 +183,9 @@ public class PollManager {
      */
     public Map<Long, Long> getPollResults(Long pollId) {
 
-        // 1. Try to fetch results from Valkey cache
         Map<String, String> cachedCounts = valkeyVoteService.getVoteCounts(pollId);
 
         if (cachedCounts != null && !cachedCounts.isEmpty()) {
-            // 2. If 'yes', return results at once
             return cachedCounts.entrySet().stream()
                     .collect(Collectors.toMap(
                             e -> Long.valueOf(e.getKey()), // optionId
@@ -141,9 +193,6 @@ public class PollManager {
                     ));
         }
 
-        // 3. Otherwise, client has to contact the database (via JPA) and aggregate
-        //    (NOTE: In a real app, this would be a single JPA query. Here, we simulate aggregation
-        //     on our in-memory data structures, which is the 'expensive' operation).
         Poll poll = getPoll(pollId);
         if (poll == null) {
             return Map.of();
@@ -162,7 +211,6 @@ public class PollManager {
                         option -> dbAggregatedCounts.getOrDefault(option.getId(), 0L)
                 ));
 
-        // 4. Before returning, put the current state into the cache
         Map<String, String> cacheMap = finalResults.entrySet().stream()
                 .collect(Collectors.toMap(
                         e -> String.valueOf(e.getKey()),
