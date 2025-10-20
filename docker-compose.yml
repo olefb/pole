@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    # Map container port 8080 to host port 8080
+    ports:
+      - "8080:8080"
+    # Wait for dependent services to be ready
+    depends_on:
+      - valkey
+      - rabbitmq
+    # Ensure application can connect to Valkey and RabbitMQ using service names
+    environment:
+      # Use the Docker Compose service names as the hostnames
+      VALKEY_HOST: valkey
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+
+  valkey:
+    image: valkey/valkey:9.0-alpine
+    command: valkey-server --bind 0.0.0.0
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672" # RabbitMQ service
+      - "15672:15672" # Management UI
