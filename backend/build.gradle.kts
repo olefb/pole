@@ -28,7 +28,7 @@ dependencies {
 
     implementation("org.hibernate.orm:hibernate-core:7.1.4.Final")
     implementation("jakarta.persistence:jakarta.persistence-api:3.2.0")
-    implementation("com.h2database:h2:2.3.232")
+    implementation("com.h2database:h2:2.4.240")
     // https://mvnrepository.com/artifact/org.springframework/spring-tx
     implementation("org.springframework:spring-tx:6.2.11")
     implementation("org.springframework:spring-orm:6.2.12")
