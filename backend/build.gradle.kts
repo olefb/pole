@@ -31,7 +31,7 @@ dependencies {
     implementation("com.h2database:h2:2.3.232")
     // https://mvnrepository.com/artifact/org.springframework/spring-tx
     implementation("org.springframework:spring-tx:6.2.11")
-    implementation("org.springframework:spring-orm:6.2.10")
+    implementation("org.springframework:spring-orm:6.2.12")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
 
     // https://mvnrepository.com/artifact/io.valkey/valkey-java
